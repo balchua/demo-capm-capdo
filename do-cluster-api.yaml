@@ -1,0 +1,105 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: do-mk8s
+  namespace: do-mk8s
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 192.168.0.0/16
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    kind: MicroK8sControlPlane
+    name: do-mk8s-control-plane
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: DOCluster
+    name: do-mk8s
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: DOCluster
+metadata:
+  name: do-mk8s
+  namespace: do-mk8s
+spec:
+  region: sgp1
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: MicroK8sControlPlane
+metadata:
+  name: do-mk8s-control-plane
+  namespace: do-mk8s
+spec:
+  controlPlaneConfig:
+    initConfiguration:
+      joinTokenTTLInSecs: 9000
+      addons:
+      - dns
+      - ingress
+  machineTemplate:
+    infrastructureTemplate:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: DOMachineTemplate
+      name: do-mk8s-control-plane
+  replicas: 3
+  version: v1.23.0
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: DOMachineTemplate
+metadata:
+  name: do-mk8s-control-plane
+  namespace: do-mk8s
+spec:
+  template:
+    spec:
+      image: "ubuntu-22-04-x64"
+      size: s-2vcpu-4gb
+      sshKeys:
+      - 77:45:be:8b:e9:38:8e:04:55:d5:71:5b:3c:c6:68:57
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: do-mk8s-md
+  namespace: do-mk8s
+spec:
+  clusterName: do-mk8s
+  replicas: 3
+  selector:
+    matchLabels: null
+  template:
+    spec:
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: MicroK8sConfigTemplate
+          name: do-mk8s-md
+      clusterName: do-mk8s
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: DOMachineTemplate
+        name: do-mk8s-worker-md
+      version: v1.23.0
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: DOMachineTemplate
+metadata:
+  name: do-mk8s-worker-md
+  namespace: do-mk8s
+spec:
+  template:
+    spec:
+      image: "ubuntu-22-04-x64"
+      size: s-2vcpu-4gb
+      sshKeys:
+      - 77:45:be:8b:e9:38:8e:04:55:d5:71:5b:3c:c6:68:57
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: MicroK8sConfigTemplate
+metadata:
+  name: do-mk8s-md
+  namespace: do-mk8s
+spec:
+  template:
+    spec: {}  
