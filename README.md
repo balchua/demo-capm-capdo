@@ -141,7 +141,7 @@ ingress       nginx-ingress-microk8s-controller-nkpwl   1/1     Running   0     
 ### Teardown
 
 ``` shell
-kubectl delete cluster do-mk8s
+kubectl -n do-mk8s delete cluster do-mk8s
 
-kubectl delete secrets do-mk8s-jointoken do-mk8s-ca do-mk8s-kubeconfig
+kubectl delete ns do-mk8s
 ```
